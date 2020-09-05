@@ -108,3 +108,29 @@ test.run()
 
 > 如果需要控制生命周期的两个处理阶段，需要自己写一个类，继承EasyMigrate类
 > 然后改写上述两个方法
+
+### 例子
+```python
+from easy_migrate import EasyMigrate
+class MyProject(EasyMigrate):
+    def after_reading(self,df,task_name):
+        '''供用户改写读取数据后的清洗工作'''
+        # 第一个表处理用户数据，发现有不少用户的手机号是重复的，造成后面几个业务表的数据要做合并
+        if self.errdict and self.errdict.get('用户表'):
+            # 有错误信息
+            if task_name in ['会员记录','钱包余额','订单','订阅']:
+                # 合并user_id
+                if not self.mapping:
+                    allerrlist = self.errdict.get('用户表')
+                    self.mapping = self.mapping_user(allerrlist) # 这里是做了一个根据无法导入的用户数据（重复手机号等），进行业务数据的user_id合并函数，你自己根据业务来写吧。
+                mapping = self.mapping
+                print(f'处理可能存在的重复用户订单信息：{task_name}')
+                for row in df.index:
+                    for key,value in mapping.items():
+                        user_id = int(df.loc[row,'user_id'])
+                        if user_id in value:
+                            # 把user_id改为已经存在的user_id
+                            print(f'发现userid={user_id},改为{int(key)}')
+                            df.loc[row,'user_id'] = int(key)
+        return df
+```
