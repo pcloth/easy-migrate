@@ -1,0 +1,13 @@
+.DS_Store
+.vscode/
+__pycache__/
+*.pyc
+bin
+lib
+lib64
+node_modules/
+/dist/
+.idea/
+.wgetrc
+/static/
+gongwen.py
